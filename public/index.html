@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#030303" />
+  <meta name="description" content="Tallier — a beautiful multi-counter tally app" />
+  <title>Tallier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <main id="appRoot" class="app">
+    <header class="hero">
+      <h1 class="app-title">Talier</h1>
+    </header>
+
+    <section class="toolbar-card">
+      <p class="toolbar-label">View</p>
+      <div class="view-toggles">
+        <button id="viewSingle" class="view-btn" type="button" aria-label="Single view">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+            <rect x="3" y="5" width="12" height="8" rx="2" />
+          </svg>
+        </button>
+        <button id="viewGrid" class="view-btn" type="button" aria-label="Grid view">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+            <rect x="2" y="2" width="6" height="6" rx="1.2" />
+            <rect x="10" y="2" width="6" height="6" rx="1.2" />
+            <rect x="2" y="10" width="6" height="6" rx="1.2" />
+            <rect x="10" y="10" width="6" height="6" rx="1.2" />
+          </svg>
+        </button>
+        <button id="viewList" class="view-btn" type="button" aria-label="List view">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+            <rect x="2" y="2.5" width="14" height="3" rx="1" />
+            <rect x="2" y="7.5" width="14" height="3" rx="1" />
+            <rect x="2" y="12.5" width="14" height="3" rx="1" />
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <section class="summary" aria-label="Summary">
+      <article class="summary-card">
+        <span>Active</span>
+        <div class="active-row">
+          <strong id="activeSummary">Counter 1</strong>
+          <select id="activeSelect" class="active-select-arrow" aria-label="Active counter"></select>
+        </div>
+      </article>
+      <article class="summary-card">
+        <span>Total Count</span>
+        <strong id="totalSummary">0</strong>
+      </article>
+    </section>
+
+
+
+    <div id="counterContainer" class="counter-container view-grid"></div>
+  </main>
+
+  <button id="thumbZoneToggle" class="thumb-zone-toggle" type="button" aria-pressed="false"
+    aria-label="Toggle thumb-zone mode">
+    <svg class="thumb-zone-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path
+        d="M9 11V5.8a2.8 2.8 0 0 1 5.1-1.5l.9 1.3c.7 1 1 2.2.8 3.4l-.2 1.2H19a2 2 0 0 1 2 2v.3a2 2 0 0 1-.2 1l-1.9 3.8a3 3 0 0 1-2.7 1.7H11a3 3 0 0 1-3-3v-5z" />
+      <path d="M6 10h2v10H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z" />
+    </svg>
+  </button>
+
+
+
+  <script src="app.js" defer></script>
+</body>
+
+</html>
