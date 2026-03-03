@@ -5,20 +5,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#030303" />
-  <meta name="description" content="Tallier — a beautiful multi-counter tally app" />
-  <title>Tallier</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TALIER" />
+  <meta name="description" content="TALIER — a beautiful multi-counter tally app" />
+  <title>TALIER</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;600;700;800&display=swap"
     rel="stylesheet" />
   <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
+  <link rel="icon" sizes="192x192" href="icons/icon-192.png" type="image/png" />
+  <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
   <main id="appRoot" class="app">
     <header class="hero">
-      <h1 class="app-title">Talier</h1>
+      <h1 class="app-title">TALIER</h1>
     </header>
 
     <section class="toolbar-card">
@@ -45,6 +51,7 @@
           </svg>
         </button>
       </div>
+      <button id="installAppBtn" class="install-btn" type="button" hidden>Install</button>
     </section>
 
     <section class="summary" aria-label="Summary">
@@ -65,18 +72,6 @@
 
     <div id="counterContainer" class="counter-container view-grid"></div>
   </main>
-
-  <button id="thumbZoneToggle" class="thumb-zone-toggle" type="button" aria-pressed="false"
-    aria-label="Toggle thumb-zone mode">
-    <svg class="thumb-zone-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path
-        d="M9 11V5.8a2.8 2.8 0 0 1 5.1-1.5l.9 1.3c.7 1 1 2.2.8 3.4l-.2 1.2H19a2 2 0 0 1 2 2v.3a2 2 0 0 1-.2 1l-1.9 3.8a3 3 0 0 1-2.7 1.7H11a3 3 0 0 1-3-3v-5z" />
-      <path d="M6 10h2v10H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z" />
-    </svg>
-  </button>
-
-
 
   <script src="app.js" defer></script>
 </body>

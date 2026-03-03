@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "tallier",
+      "name": "talier",
       "dependencies": {
         "firebase": "^12.10.0",
       },

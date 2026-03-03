@@ -9,22 +9,27 @@ interface Counter {
 }
 
 type ViewMode = "single" | "grid" | "list";
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+  prompt(): Promise<void>;
+}
 
 interface AppState {
   counters: Counter[];
   activeId: string;
   viewMode: ViewMode;
-  thumbZoneMode: boolean;
 }
 
 
 
 /* ── Constants ─────────────────────────────────────────── */
 
-const STORAGE_KEY = "tallier_multi_v2";
-const OLD_STORAGE_KEY = "tallier_single_v1";
+const STORAGE_KEY = "talier_multi_v2";
+const OLD_STORAGE_KEY = "talier_single_v1";
 const MAX_NAME_LEN = 30;
 const VIEW_MODES: ReadonlyArray<ViewMode> = ["single", "grid", "list"];
+let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
 
 /* ── Helpers ───────────────────────────────────────────── */
 
@@ -71,6 +76,9 @@ function parseCounters(input: unknown): Counter[] {
 }
 
 function resolveActiveId(counters: Counter[], activeId: unknown): string {
+  if (counters.length === 0) {
+    return "";
+  }
   if (typeof activeId === "string" && counters.some((counter) => counter.id === activeId)) {
     return activeId;
   }
@@ -87,13 +95,14 @@ bindGlobalEvents();
 
 render();
 registerServiceWorker();
+bindInstallPrompt();
 
 /* ── Persistence ───────────────────────────────────────── */
 
 function loadState(): AppState {
   const fallback = (): AppState => {
     const c: Counter = { id: uid(), name: "Counter 1", count: 0 };
-    return { counters: [c], activeId: c.id, viewMode: "grid", thumbZoneMode: false };
+    return { counters: [c], activeId: c.id, viewMode: "grid" };
   };
 
   try {
@@ -104,15 +113,13 @@ function loadState(): AppState {
         counters?: unknown;
         activeId?: unknown;
         viewMode?: unknown;
-        thumbZoneMode?: unknown;
       };
       const counters = parseCounters(parsed.counters);
       if (counters.length > 0) {
         return {
           counters,
           activeId: resolveActiveId(counters, parsed.activeId),
-          viewMode: normalizeViewMode(parsed.viewMode),
-          thumbZoneMode: parsed.thumbZoneMode === true
+          viewMode: normalizeViewMode(parsed.viewMode)
         };
       }
     }
@@ -126,8 +133,7 @@ function loadState(): AppState {
         const migrated: AppState = {
           counters: [c],
           activeId: c.id,
-          viewMode: "grid",
-          thumbZoneMode: false
+          viewMode: "grid"
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
         localStorage.removeItem(OLD_STORAGE_KEY);
@@ -140,8 +146,7 @@ function loadState(): AppState {
         const migrated: AppState = {
           counters: migratedCounters,
           activeId: migratedCounters[0].id,
-          viewMode: "grid",
-          thumbZoneMode: false
+          viewMode: "grid"
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
         localStorage.removeItem(OLD_STORAGE_KEY);
@@ -231,10 +236,6 @@ function bindGlobalEvents(): void {
     state.activeId = select.value;
     persistAndRender();
   });
-  el<HTMLButtonElement>("thumbZoneToggle").addEventListener("click", () => {
-    state.thumbZoneMode = !state.thumbZoneMode;
-    persistAndRender();
-  });
 
 
   // Container event delegation
@@ -313,7 +314,6 @@ function escapeHtml(s: string): string {
 
 function render(): void {
   const container = el("counterContainer");
-  const thumbZoneToggle = el<HTMLButtonElement>("thumbZoneToggle");
   const active = state.counters.find((c) => c.id === state.activeId) ?? state.counters[0];
   if (state.activeId !== active.id) {
     state.activeId = active.id;
@@ -329,9 +329,6 @@ function render(): void {
     .join("");
   activeSelect.value = active.id;
   el("totalSummary").textContent = String(totalCount);
-  document.body.classList.toggle("thumb-zone-mode", state.thumbZoneMode);
-  thumbZoneToggle.classList.toggle("thumb-zone-active", state.thumbZoneMode);
-  thumbZoneToggle.setAttribute("aria-pressed", state.thumbZoneMode ? "true" : "false");
 
 
   // View mode classes on container
@@ -411,29 +408,55 @@ function render(): void {
 
 function registerServiceWorker(): void {
   if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", () => {
+    void navigator.serviceWorker.register("./sw.js").then((registration) => {
+      if (registration.waiting) {
+        registration.waiting.postMessage("SKIP_WAITING");
+      }
 
-  const isLocalhost =
-    window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-
-  if (isLocalhost) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => {
-        void registration.unregister();
-      });
-    });
-
-    if ("caches" in window) {
-      caches.keys().then((keys) => {
-        keys.forEach((key) => {
-          void caches.delete(key);
+      registration.addEventListener("updatefound", () => {
+        const installing = registration.installing;
+        if (!installing) return;
+        installing.addEventListener("statechange", () => {
+          if (installing.state === "installed" && navigator.serviceWorker.controller) {
+            registration.waiting?.postMessage("SKIP_WAITING");
+          }
         });
       });
-    }
+    });
+  });
+}
 
+function bindInstallPrompt(): void {
+  const installButton = document.getElementById("installAppBtn") as HTMLButtonElement | null;
+  if (!installButton) return;
+
+  const inStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true;
+  if (inStandalone) {
+    installButton.hidden = true;
     return;
   }
 
-  window.addEventListener("load", () => {
-    void navigator.serviceWorker.register("./sw.js");
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event as BeforeInstallPromptEvent;
+    installButton.hidden = false;
+  });
+
+  installButton.addEventListener("click", async () => {
+    const promptEvent = deferredInstallPrompt;
+    if (!promptEvent) return;
+
+    installButton.hidden = true;
+    await promptEvent.prompt();
+    await promptEvent.userChoice;
+    deferredInstallPrompt = null;
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    installButton.hidden = true;
   });
 }

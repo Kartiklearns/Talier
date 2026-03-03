@@ -41,7 +41,7 @@ const server = Bun.serve({
   }
 });
 
-console.log(`Tallier running at ${server.url}`);
+console.log(`TALIER running at ${server.url}`);
 
 function getRequestPath(request: Request): string {
   const url = new URL(request.url);
